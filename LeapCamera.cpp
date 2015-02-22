@@ -21,10 +21,36 @@
 using namespace Leap;
 
 
+class SampleListener : public Listener {
+public:
+	virtual void onConnect(const Controller&);
+	virtual void onFrame(const Controller&);
+};
+
+void SampleListener::onConnect(const Controller& controller) {
+	std::cout << "Connected" << std::endl;
+}
+
+void SampleListener::onFrame(const Controller& controller) {
+//	std::cout << "Frame available" << std::endl;
+}
+
+
+SampleListener listener;
+Controller controller;
+ImageList images;
+Image image;
+Frame frame;
+const unsigned char * image_buffer;
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 
 LeapCamera::LeapCamera(){
+
+	controller.setPolicy(Leap::Controller::POLICY_IMAGES);
+	controller.addListener(listener);
+	controller.setPolicy(Controller::POLICY_IMAGES);
 
 
 
@@ -32,7 +58,7 @@ LeapCamera::LeapCamera(){
 
 LeapCamera::~LeapCamera(){
 
-
+	
 
 
 }
@@ -67,7 +93,7 @@ void LeapCamera::run(){
 			// Clear the colorbuffer
 			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
-
+			update();
 			render();
 
 			// Swap the screen buffers
@@ -82,22 +108,28 @@ void LeapCamera::run(){
 
 void LeapCamera::render(){
 
-	std::cout << "Render has been establed" << std::endl;
 
 }
 
 void LeapCamera::update(){
+	frame = controller.frame();
+	images = frame.images();
+	image = images[0];
+	image_buffer = image.data();
+	
+}
 
-
+void LeapCamera::CreateTestImage(){
 
 
 }
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS){
-
+		SOIL_save_image("TestFile.bmp", 1, image.width(), image.height(), 1, image_buffer);
+		std::cout << "Image saved!" << std::endl;
+		//std::cout << image.height() << std::endl;
 	}
 }
