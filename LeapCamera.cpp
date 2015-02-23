@@ -43,8 +43,9 @@ Image LeftCam;
 Image RightCam;
 Frame frame;
 //const unsigned char * image_buffer;
-GLuint texture;
-GLuint VBO, VAO, EBO;
+GLuint left_texture;
+GLuint right_texture;
+GLuint VBOs[2], VAOs[2], EBOs[2];
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 
@@ -89,33 +90,49 @@ void LeapCamera::run(){
 		Shader ourShader("VertexShader.vert", "FragmentShader.frag");
 
 		// Set up vertex data (and buffer(s)) and attribute pointers
-		GLfloat vertices[] = {
-			// Positions          // Colors                // Texture Coords
-			0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // Top Right
-			0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Bottom Right
-			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // Bottom Left
-			-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // Top Left 
+		GLfloat left_eye_verticies[] = {
+			// Positions            // Colors                  // Texture Coords
+			0.5f, 0.5f, 0.0f,      0.0f, 0.0f, 0.0f,           1.0f, 1.0f, // Top Right
+			0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 0.0f,           1.0f, 0.0f, // Bottom Right
+		   -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 0.0f,           0.0f, 0.0f, // Bottom Left
+		   -0.5f, 0.5f, 0.0f,      0.0f, 0.0f, 0.0f,           0.0f, 1.0f  // Top Left 
 		};
-		GLuint indices[] = {  // Note that we start from 0!
+		GLuint left_eye_indices[] = {  // Note that we start from 0!
 			0, 1, 3, // First Triangle
 			1, 2, 3  // Second Triangle
 		};
 		
+
+		GLfloat right_eye_verticies[] = {
+			// Positions            // Colors                  // Texture Coords
+			0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, // Top Right
+			0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // Bottom Right
+			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Bottom Left
+			-0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f  // Top Left 
+		};
+		GLuint right_eye_indices[] = {  // Note that we start from 0!
+			0, 1, 3, // First Triangle
+			1, 2, 3  // Second Triangle
+		};
+
+
+
 		//OpenGL set up code
 		
 		glEnable(GL_TEXTURE_2D);
 
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		glGenBuffers(1, &EBO);
+		glGenVertexArrays(2, VAOs);
+		glGenBuffers(2, VBOs);
+		glGenBuffers(2, EBOs);
 
-		glBindVertexArray(VAO);
+		//Left Eye set up
+		glBindVertexArray(VAOs[0]);
 
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(left_eye_verticies), left_eye_verticies, GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(left_eye_indices), left_eye_indices, GL_STATIC_DRAW);
 
 		// Position attribute
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
@@ -129,10 +146,48 @@ void LeapCamera::run(){
 
 		glBindVertexArray(0); // Unbind VAO
 
-		// Load and create a texture 
-	//	GLuint texture;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture); // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
+		
+		
+		//Right Eye set up
+		glBindVertexArray(VAOs[1]);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(right_eye_verticies), right_eye_verticies, GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[1]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(right_eye_indices), right_eye_indices, GL_STATIC_DRAW);
+
+		// Position attribute
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+		// Color attribute
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
+		// TexCoord attribute
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+
+		glBindVertexArray(0); // Unbind VAO
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		// Load and create a texture and fills it with test data. 
+		//	GLuint texture;
+		glGenTextures(1, &left_texture);
+		glBindTexture(GL_TEXTURE_2D, left_texture); // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
 		// Set the texture wrapping parameters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -165,7 +220,7 @@ void LeapCamera::run(){
 			update();
 
 			//Bind texture
-			glBindTexture(GL_TEXTURE_2D, texture);
+			glBindTexture(GL_TEXTURE_2D, left_texture);
 
 			// Activate shader
 			ourShader.Use();
@@ -173,13 +228,12 @@ void LeapCamera::run(){
 
 
 
-			// Draw container
-			glBindVertexArray(VAO);
+			// Draw left eye
+			glBindVertexArray(VAOs[0]);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 
-
-
+	
 
 
 		
@@ -208,8 +262,10 @@ void LeapCamera::update(){
 		//Update image and distortion textures
 		Image left = frame.images()[0];
 		if (left.width() > 0) {
-			glBindTexture(GL_TEXTURE_2D, texture);
+			glBindTexture(GL_TEXTURE_2D, left_texture);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, left.data());
+			const unsigned char* intensities = left.data();
+			std::cout << (int)intensities[0];
 		
 		}
 	
@@ -227,7 +283,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS){
 		SOIL_save_image("TestFile.bmp", 1, RightCam.width(), RightCam.height(), 1, LeftCam.data());
 		std::cout << "Image saved!" << std::endl;
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, left_texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, LeftCam.width(), LeftCam.height(), 0, GL_RGB, GL_UNSIGNED_BYTE, LeftCam.data());
 	}
 
